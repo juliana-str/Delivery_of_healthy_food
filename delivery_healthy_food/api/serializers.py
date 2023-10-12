@@ -113,12 +113,6 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
             ),
         )
 
-    def validate_product(self, data):
-        user = self.context['request'].user
-        if ShoppingCart.objects.filter(product=data, user=user).exists():
-            raise serializers.ValidationError('Продукт уже в корзине.')
-        return data
-
     def validate_count_of_product(self, data):
         if data < 1:
             raise serializers.ValidationError(
@@ -135,18 +129,69 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
     #         )
     #     return super().update(instance, validated_data)
 
-    @transaction.atomic
-    def update(self, instance, validated_data):
-        product = validated_data.get('product')
-        user = validated_data.get('user')
-        count_of_product = validated_data.pop('count_of_product', 1)
-        shopping_cart = ShoppingCart.objects.get(
-            product=product,
-            user=user,
-            count_of_product=count_of_product
-        )
-        if validated_data:
-            shopping_cart.save()
+    # def create(self, request, *args, **kwargs):
+    #     """Метод для добавления продукта в корзину."""
+    #     product = request.data
+    #     user = request.user
+    #     print(product, user)
+    #     serializer = ShoppingCartSerializer(
+    #         data={'user': user.id, 'product': product['product']},
+    #         context={"request": request.data})
+    #     serializer.is_valid(raise_exception=True)
+    #     ShoppingCart.objects.create(product=product, user=user, count)
+    #     return Response(serializer.data, status=status.HTTP_200_OK)
+    #
+    # @transaction.atomic
+    # def create(self, validated_data):
+    #     user = self.context['request'].user
+    #     product = validated_data.pop('product')
+    #     count_of_product = validated_data.pop('count_of_product')
+    #     cart = ShoppingCart.objects.create(**validated_data,
+    #                                    )
+    #     ShoppingCart.objects.bulk_create(
+    #         ShoppingCart(
+    #             product=product,
+    #             count_of_product=count_of_product,
+    #             user=user
+    #     ))
+    #     return cart
+    #
+    #
+    # def update(self, request, *args, **kwargs):
+    #     partial = kwargs.pop('partial', False)
+    #     instance = self.get_object()
+    #     serializer = self.get_serializer(
+    #         instance, data=request.data, partial=partial)
+    #     serializer.is_valid(raise_exception=True)
+    #     self.perform_update(serializer)
+    #
+    # def destroy(self, request, *args, **kwargs):
+    #     """Метод для удаления продукта из корзины."""
+    #     product = get_object_or_404(Product, id=kwargs['id'])
+    #     user = request.user
+    #     shopping_cart = ShoppingCart.objects.filter(
+    #         product=product.id, user=user.id)
+    #     if not shopping_cart:
+    #         return Response({'errors': 'Этого продукта нет в корзине!'},
+    #                         status=status.HTTP_400_BAD_REQUEST)
+    #     shopping_cart.delete()
+    #     return Response(status=status.HTTP_204_NO_CONTENT)
+    #
+    #
+    #
+    #
+    # @transaction.atomic
+    # def update(self, instance, validated_data):
+    #     product = validated_data.get('product')
+    #     user = validated_data.get('user')
+    #     count_of_product = validated_data.pop('count_of_product', 1)
+    #     shopping_cart = ShoppingCart.objects.get(
+    #         product=product,
+    #         user=user,
+    #         count_of_product=count_of_product
+    #     )
+    #     if validated_data:
+    #         shopping_cart.save()
 
     # def to_representation(self, instance):
     #
@@ -154,6 +199,8 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
     #     print(product)
     #     return ProductMiniCartSerializer(product).data
 
-    def to_representation(self, instance):
-
-        return ProductMiniCartSerializer(instance, context=self.context).data
+    # def to_representation(self, instance):
+    #
+    #     print(instance.items(), '&&&&&&&&&&&')
+    #
+    #     return ProductMiniCartSerializer(instance.items(), context=self.context).data

@@ -89,13 +89,16 @@ class ShoppingCartViewSet(ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         """Метод для добавления продукта в корзину."""
-        product = get_object_or_404(Product, id=kwargs['id'])
+        product = request.data
         user = request.user
         serializer = ShoppingCartSerializer(
-            data={'user': user.id, 'product': product.id},
-            context={"request": request})
+            data={'user': user.id, 'product': product['product']},
+            context={"request": request.data})
         serializer.is_valid(raise_exception=True)
-        ShoppingCart.objects.create(user=user, product=product)
+        ShoppingCart.objects.create(
+            product=Product.objects.get(id=product['product']),
+            user=user,
+            count_of_product=product['count_of_product'])
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     def update(self, request, *args, **kwargs):
