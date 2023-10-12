@@ -76,7 +76,7 @@ class ShoppingCart(models.Model):
     )
     count_of_product = models.IntegerField(
         verbose_name='Количество товара',
-        validators = [
+        validators=[
                 MinValueValidator(1, 'Разрешены значения от 1 до 100'),
                 MaxValueValidator(10000, 'Разрешены значения от 1 до 100')
         ]

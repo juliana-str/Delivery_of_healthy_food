@@ -57,11 +57,11 @@ class ProductSerializer(serializers.ModelSerializer):
 
 
 class ProductMinifiedSerializer(serializers.ModelSerializer):
-    """Сериалайзер для рецепта без ингридиентов."""
+    """Сериалайзер для представления продукта."""
 
     class Meta:
         model = Product
-        fields = ('id', 'name', 'image', 'weight')
+        fields = ('name', 'image', 'weight')
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
@@ -81,6 +81,22 @@ class FavoriteSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         instance = instance.product
         return ProductMinifiedSerializer(instance, context=self.context).data
+
+
+class ProductMiniCartSerializer(serializers.ModelSerializer):
+    """Сериалайзер для представления продукта."""
+    product_name = serializers.SerializerMethodField()
+    product_weight = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ShoppingCart
+        fields = ('product_name', 'count_of_product', 'product_weight')
+
+    def get_product_name(self, obj):
+        return obj.product.name
+
+    def get_product_weight(self, obj):
+        return obj.product.weight
 
 
 class ShoppingCartSerializer(serializers.ModelSerializer):
@@ -109,18 +125,35 @@ class ShoppingCartSerializer(serializers.ModelSerializer):
                 'Количество  товара в корзине должно быть не меньше 1!')
         return data
 
+
+    # def update(self, instance, validated_data):
+    #     count_of_product = validated_data.pop('count_of_product', 1)
+    #     ShoppingCart.objects.create(
+    #                 product=instance,
+    #                 user=self.context['request'].user,
+    #                 count_of_product=count_of_product
+    #         )
+    #     return super().update(instance, validated_data)
+
     @transaction.atomic
     def update(self, instance, validated_data):
+        product = validated_data.get('product')
+        user = validated_data.get('user')
         count_of_product = validated_data.pop('count_of_product', 1)
-        instance.count_of_product.clear()
-        ShoppingCart.objects.create(
-                    product=instance,
-                    user=self.context['request'].user,
-                    count_of_product=count_of_product
-            )
-        return super().update(instance, validated_data)
+        shopping_cart = ShoppingCart.objects.get(
+            product=product,
+            user=user,
+            count_of_product=count_of_product
+        )
+        if validated_data:
+            shopping_cart.save()
+
+    # def to_representation(self, instance):
+    #
+    #     product = Product.objects.get(instance.product)
+    #     print(product)
+    #     return ProductMiniCartSerializer(product).data
 
     def to_representation(self, instance):
-        instance = instance.product
-        return ProductMinifiedSerializer(instance).data
 
+        return ProductMiniCartSerializer(instance, context=self.context).data
