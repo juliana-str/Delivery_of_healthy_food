@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from djoser.serializers import SetPasswordSerializer
 from djoser.views import UserViewSet
 from rest_framework import status
