@@ -1,6 +1,23 @@
-from rest_framework import serializers
 
-from .models import Product, ShoppingCart, Favorite
+
+from djoser.serializers import UserCreateSerializer
+from rest_framework import serializers
+from delivery_healthy_food.products.models import Product, ShoppingCart, Favorite
+from delivery_healthy_food.users.models import User
+
+
+class UserPostSerializer(UserCreateSerializer):
+    """Сериалайзер для модели пользователей, создание, изменение, удаление."""
+
+    class Meta:
+        fields = (
+            'email',
+            'username',
+            'first_name',
+            'last_name',
+            'password'
+        )
+        model = User
 
 
 class ProductSerializer(serializers.ModelSerializer):
