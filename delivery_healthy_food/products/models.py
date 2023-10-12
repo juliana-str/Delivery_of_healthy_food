@@ -1,6 +1,6 @@
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
-from delivery_healthy_food.users.models import User
+from users.models import User
 
 
 class Product(models.Model):

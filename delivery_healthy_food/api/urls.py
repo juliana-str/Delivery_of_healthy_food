@@ -1,8 +1,8 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from delivery_healthy_food.users.views import CustomUserViewSet
-from delivery_healthy_food.products.views import (
+from users.views import CustomUserViewSet
+from products.views import (
     ProductViewSet,
     FavoriteViewSet,
     ShoppingCartViewSet
