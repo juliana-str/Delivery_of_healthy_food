@@ -1,12 +1,9 @@
-from django.shortcuts import render
-
-
 from rest_framework import status, mixins
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from rest_framework.viewsets import ModelViewSet, GenericViewSet
+from rest_framework.viewsets import GenericViewSet
 
 from .models import Product, ShoppingCart, Favorite
 from .serializers import (
@@ -26,9 +23,9 @@ class ProductViewSet(mixins.ListModelMixin,
 
 
 class FavoriteViewSet(mixins.ListModelMixin,
-                     mixins.CreateModelMixin,
-                     mixins.DestroyModelMixin,
-                     GenericViewSet):
+                      mixins.CreateModelMixin,
+                      mixins.DestroyModelMixin,
+                      GenericViewSet):
     """Вьюсет для модели продуктов."""
     queryset = Favorite.objects.all()
     serializer_class = FavoriteSerializer
@@ -57,9 +54,9 @@ class FavoriteViewSet(mixins.ListModelMixin,
 
 
 class ShoppingCartViewSet(mixins.ListModelMixin,
-                         mixins.CreateModelMixin,
-                         mixins.DestroyModelMixin,
-                         GenericViewSet):
+                          mixins.CreateModelMixin,
+                          mixins.DestroyModelMixin,
+                          GenericViewSet):
     """Вьюсет для модели корзины продуктов."""
     queryset = ShoppingCart.objects.all()
     serializer_class = ShoppingCartSerializer
