@@ -9,8 +9,11 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, GenericViewSet
 
 from .models import Product, ShoppingCart, Favorite
-from .serializers import ProductSerializer, FavoriteSerializer, \
-    FavoritePostDeleteSerializer
+from .serializers import (
+    ProductSerializer,
+    FavoriteSerializer,
+    ShoppingCartSerializer
+)
 
 
 class ProductViewSet(mixins.ListModelMixin,
@@ -50,4 +53,36 @@ class FavoriteViewSet(mixins.ListModelMixin,
             return Response({'errors': 'Этого продукта нет в избранном!'},
                             status=status.HTTP_400_BAD_REQUEST)
         favorite.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class ShoppingCartViewSet(mixins.ListModelMixin,
+                         mixins.CreateModelMixin,
+                         mixins.DestroyModelMixin,
+                         GenericViewSet):
+    """Вьюсет для модели корзины продуктов."""
+    queryset = ShoppingCart.objects.all()
+    serializer_class = ShoppingCartSerializer
+    permission_classes = (IsAuthenticated,)
+
+    @action(detail=True, methods=['post', 'delete'],
+            permission_classes=[IsAuthenticated])
+    def shopping_cart(self, request, **kwargs):
+        """Метод для создания, удаления списка продуктов."""
+        product = get_object_or_404(Product, id=kwargs['pk'])
+        user = request.user
+        if request.method == 'POST':
+            serializer = ShoppingCartSerializer(
+                data={'user': user.id, 'product': product.id},
+                context={"request": request})
+            serializer.is_valid(raise_exception=True)
+            ShoppingCart.objects.create(user=user, product=product)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        shopping_cart = ShoppingCart.objects.filter(
+            product=product.id, user=user.id)
+        if not shopping_cart:
+            return Response({'errors': 'Этого продукта нет в списке покупок!'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        shopping_cart.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
