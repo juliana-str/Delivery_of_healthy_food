@@ -35,7 +35,9 @@ INSTALLED_APPS = [
     'django_filters',
     'api',
     'users',
-    'products'
+    'products',
+    'rest_framework_swagger',  # Swagger
+    'drf_yasg'
 ]
 
 AUTH_USER_MODEL = 'users.User'
