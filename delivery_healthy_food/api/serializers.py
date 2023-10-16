@@ -2,7 +2,7 @@ from django.db import transaction
 from djoser.serializers import UserCreateSerializer
 from rest_framework import serializers
 
-from products.models import Product, ShoppingCart, Favorite
+from products.models import Product, ShoppingCart, Favorite, Category
 from users.models import User
 
 
@@ -34,10 +34,19 @@ class UserPostSerializer(UserCreateSerializer):
         model = User
 
 
+class CategorySerializer(serializers.ModelSerializer):
+    """Сериалайзер для модели категорий продуктов."""
+
+    class Meta:
+        fields = '__all__'
+        model = Category
+
+
 class ProductSerializer(serializers.ModelSerializer):
     """Сериалайзер для модели продуктов."""
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
+    category = serializers.ReadOnlyField(source='category.name')
 
     class Meta:
         fields = '__all__'
@@ -61,7 +70,7 @@ class ProductMinifiedSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Product
-        fields = ('name', 'image', 'weight')
+        fields = ('name', 'image', 'price')
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
@@ -87,10 +96,12 @@ class ShoppingCartGetSerializer(serializers.ModelSerializer):
     """Сериалайзер для представления продукта."""
     product_name = serializers.SerializerMethodField()
     product_weight = serializers.SerializerMethodField()
+    product_price = serializers.SerializerMethodField()
 
     class Meta:
         model = ShoppingCart
-        fields = ('product_name', 'count_of_product', 'product_weight')
+        fields = ('product_name', 'count_of_product',
+                  'product_weight', 'product_price')
 
     def get_product_name(self, obj):
         return obj.product.name
@@ -98,8 +109,11 @@ class ShoppingCartGetSerializer(serializers.ModelSerializer):
     def get_product_weight(self, obj):
         return obj.product.weight
 
+    def get_product_price(self, obj):
+        return obj.product.price
 
-class ShoppingCartPostSerializer(serializers.ModelSerializer):
+
+class ShoppingCartPostUpdateSerializer(serializers.ModelSerializer):
     count_of_product = serializers.IntegerField(default=1)
 
     class Meta:
@@ -128,33 +142,6 @@ class ShoppingCartPostSerializer(serializers.ModelSerializer):
     #         )
     #     return super().update(instance, validated_data)
 
-    # def create(self, request, *args, **kwargs):
-    #     """Метод для добавления продукта в корзину."""
-    #     product = request.data
-    #     user = request.user
-    #     print(product, user)
-    #     serializer = ShoppingCartSerializer(
-    #         data={'user': user.id, 'product': product['product']},
-    #         context={"request": request.data})
-    #     serializer.is_valid(raise_exception=True)
-    #     ShoppingCart.objects.create(product=product, user=user, count)
-    #     return Response(serializer.data, status=status.HTTP_200_OK)
-    #
-    # @transaction.atomic
-    # def create(self, validated_data):
-    #     user = self.context['request'].user
-    #     product = validated_data.pop('product')
-    #     count_of_product = validated_data.pop('count_of_product')
-    #     cart = ShoppingCart.objects.create(**validated_data,
-    #                                    )
-    #     ShoppingCart.objects.bulk_create(
-    #         ShoppingCart(
-    #             product=product,
-    #             count_of_product=count_of_product,
-    #             user=user
-    #     ))
-    #     return cart
-    #
     #
     # def update(self, request, *args, **kwargs):
     #     partial = kwargs.pop('partial', False)
@@ -176,17 +163,18 @@ class ShoppingCartPostSerializer(serializers.ModelSerializer):
     #     shopping_cart.delete()
     #     return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @transaction.atomic
-    def update(self, instance, validated_data):
-        product = validated_data.get('product')
-        user = validated_data.get('user')
-        count_of_product = validated_data.pop('count_of_product', 1)
-        shopping_cart = ShoppingCart.objects.get(
-            product=product,
-            user=user,
-            count_of_product=count_of_product
-        )
-        if validated_data:
-            shopping_cart.save()
+    # @transaction.atomic
+    # def update(self, instance, validated_data):
+    #     product = validated_data.get('product')
+    #     user = validated_data.get('user')
+    #     count_of_product = validated_data.pop('count_of_product', 1)
+    #     shopping_cart = ShoppingCart.objects.get(
+    #         product=product,
+    #         user=user,
+    #         count_of_product=count_of_product
+    #     )
+    #     if validated_data:
+    #         shopping_cart.save()
+    #         return shopping_cart
 
 

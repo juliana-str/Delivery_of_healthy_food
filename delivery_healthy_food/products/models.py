@@ -2,6 +2,25 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from users.models import User
 
+MEASURE_UNIT = ('гр', 'мл', 'шт', 'кг')
+
+
+class Category(models.Model):
+    """Модель для создания категории."""
+    name = models.CharField(
+        max_length=150,
+        verbose_name='Категория товара',
+        unique=True
+    )
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = 'Категория товара'
+        verbose_name_plural = 'Категории товара'
+
+    def __str__(self):
+        return f'{self.name}'
+
 
 class Product(models.Model):
     """Модель для создания продукта."""
@@ -10,12 +29,16 @@ class Product(models.Model):
         verbose_name='Название',
         unique=True
     )
+    measure_unit = models.CharField(
+        max_length=200,
+        verbose_name='Единица измерения'
+    )
     weight = models.FloatField(
         verbose_name='Вес',
         validators=[
-                MinValueValidator(1, 'Разрешены значения от 1 до 10000'),
-                MaxValueValidator(10000, 'Разрешены значения от 1 до 10000')
-        ]
+            MinValueValidator(1, 'Разрешены значения от 1 до 1000'),
+            MaxValueValidator(1000, 'Разрешены значения от 1 до 1000')
+    ]
     )
     description = models.CharField(
         max_length=200,
@@ -23,6 +46,24 @@ class Product(models.Model):
     )
     image = models.ImageField(
         verbose_name='Изображение',
+        upload_to='products/media'
+    )
+    producer = models.CharField(
+        max_length=100,
+        verbose_name='Производитель',
+    )
+    category = models.ManyToManyField(
+        Category,
+        through='ProductCategory',
+        through_fields=('product', 'category'),
+        verbose_name='Категория'
+    )
+    price = models.FloatField(
+        verbose_name='Цена',
+        validators=[
+            MinValueValidator(1, 'Разрешены значения от 1 до 10000'),
+            MaxValueValidator(10000, 'Разрешены значения от 1 до 10000')
+    ]
     )
 
     class Meta:
@@ -31,7 +72,11 @@ class Product(models.Model):
         verbose_name_plural = 'Продукты'
 
     def __str__(self):
-        return f'{self.name}, {self.weight}, {self.description}.'
+        return (f'{self.name}, ' 
+                f'{self.measure_unit}, ' 
+                f'{self.description}, '
+                f'{self.category}, ' 
+                f'{self.producer}.')
 
 
 class Favorite(models.Model):
@@ -92,3 +137,14 @@ class ShoppingCart(models.Model):
             )
         ]
 
+
+class ProductCategory(models.Model):
+    """Модель связи моделей категорий и продуктов."""
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.CASCADE,
+    )
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE
+    )

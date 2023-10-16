@@ -3,6 +3,7 @@ from rest_framework.routers import DefaultRouter
 
 from .views import (
     CustomUserViewSet,
+    CategoryViewSet,
     ProductViewSet,
     FavoriteViewSet,
     ShoppingCartViewSet
@@ -14,6 +15,7 @@ router = DefaultRouter()
 router.register(r'users', CustomUserViewSet, basename='users')
 router.register(r'products', ProductViewSet, basename='products')
 router.register(r'favorites', FavoriteViewSet, basename='favorites')
+router.register(r'categories', CategoryViewSet, basename='categories')
 router.register(
     r'shopping_cart', ShoppingCartViewSet, basename='shopping_carts')
 

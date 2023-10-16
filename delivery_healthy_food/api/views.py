@@ -1,3 +1,4 @@
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import status, mixins
 from rest_framework.generics import get_object_or_404
 from rest_framework.viewsets import GenericViewSet, ModelViewSet
@@ -9,11 +10,13 @@ from djoser.views import UserViewSet
 
 from users.models import User
 from products.models import (
-    Product, ShoppingCart, Favorite)
+    Product, ShoppingCart, Favorite, Category)
 from .serializers import (
+    CategorySerializer,
     ProductSerializer,
     FavoriteSerializer,
-    ShoppingCartSerializer,
+    ShoppingCartGetSerializer,
+    ShoppingCartPostUpdateSerializer,
     UserPostSerializer,
     UserGetSerializer
 )
@@ -22,7 +25,6 @@ from .serializers import (
 class CustomUserViewSet(UserViewSet):
     """Вьюсет для модели пользователей."""
     queryset = User.objects.all()
-    serializer_class = UserPostSerializer
     permission_classes = (AllowAny,)
 
     def get_serializer_class(self):
@@ -40,6 +42,18 @@ class CustomUserViewSet(UserViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+class CategoryViewSet(mixins.ListModelMixin,
+                      mixins.RetrieveModelMixin,
+                      GenericViewSet):
+    """Вьюсет для модели категорий продуктов."""
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = (AllowAny,)
+    filter_backends = (DjangoFilterBackend,)
+    search_fields = ('name',)
+    lookup_fields = ('name',)
+
+
 class ProductViewSet(mixins.ListModelMixin,
                      mixins.RetrieveModelMixin,
                      GenericViewSet):
@@ -47,6 +61,61 @@ class ProductViewSet(mixins.ListModelMixin,
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
     permission_classes = (AllowAny,)
+    filter_backends = (DjangoFilterBackend,)
+    search_fields = ('name',)
+    lookup_fields = ('name',)
+
+
+class ShoppingCartViewSet(ModelViewSet):
+    """Вьюсет для модели корзины продуктов."""
+    queryset = ShoppingCart.objects.all()
+    permission_classes = (IsAuthenticated,)
+    http_method_names = ['get', 'post', 'patch', 'delete']
+
+    def get_serializer_class(self):
+        if self.action in ('list', 'retrieve'):
+            return ShoppingCartGetSerializer
+        return ShoppingCartPostUpdateSerializer
+
+    def create(self, request, *args, **kwargs):
+        """Метод для добавления продукта в корзину."""
+        product = request.data
+        user = request.user
+        serializer = ShoppingCartPostUpdateSerializer(
+            data={'user': user.id, 'product': product['product']},
+            context={"request": request.data})
+        serializer.is_valid(raise_exception=True)
+        ShoppingCart.objects.create(
+            product=Product.objects.get(id=product['product']),
+            user=user,
+            count_of_product=product['count_of_product'])
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def update(self, request, *args, **kwargs):
+        """Метод редактирования количества продукта в корзине."""
+        print('>>>>>>>>>>>>>>>>>>>>>>>')
+        partial = kwargs.pop('partial', False)
+
+        product = get_object_or_404(Product, id=kwargs['id'])
+        user = request.user
+        serializer = ShoppingCartPostUpdateSerializer(
+            data={'user': user.id, 'product': product['product']},
+            context={"request": request.data}, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+
+    def destroy(self, request, *args, **kwargs):
+        """Метод для удаления продукта из корзины."""
+        product = get_object_or_404(Product, id=kwargs['id'])
+        user = request.user
+        shopping_cart = ShoppingCart.objects.filter(
+            product=product.id, user=user.id)
+        if not shopping_cart:
+            return Response({'errors': 'Этого продукта нет в корзине!'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        shopping_cart.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class FavoriteViewSet(mixins.ListModelMixin,
@@ -78,46 +147,3 @@ class FavoriteViewSet(mixins.ListModelMixin,
                             status=status.HTTP_400_BAD_REQUEST)
         favorite.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-class ShoppingCartViewSet(ModelViewSet):
-    """Вьюсет для модели корзины продуктов."""
-    queryset = ShoppingCart.objects.all()
-    serializer_class = ShoppingCartSerializer
-    permission_classes = (IsAuthenticated,)
-    http_method_names = ["get", "post", "patch", "delete"]
-
-    def create(self, request, *args, **kwargs):
-        """Метод для добавления продукта в корзину."""
-        product = request.data
-        user = request.user
-        serializer = ShoppingCartSerializer(
-            data={'user': user.id, 'product': product['product']},
-            context={"request": request.data})
-        serializer.is_valid(raise_exception=True)
-        ShoppingCart.objects.create(
-            product=Product.objects.get(id=product['product']),
-            user=user,
-            count_of_product=product['count_of_product'])
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def update(self, request, *args, **kwargs):
-        partial = kwargs.pop('partial', False)
-        instance = self.get_object()
-        serializer = self.get_serializer(
-            instance, data=request.data, partial=partial)
-        serializer.is_valid(raise_exception=True)
-        self.perform_update(serializer)
-
-    def destroy(self, request, *args, **kwargs):
-        """Метод для удаления продукта из корзины."""
-        product = get_object_or_404(Product, id=kwargs['id'])
-        user = request.user
-        shopping_cart = ShoppingCart.objects.filter(
-            product=product.id, user=user.id)
-        if not shopping_cart:
-            return Response({'errors': 'Этого продукта нет в корзине!'},
-                            status=status.HTTP_400_BAD_REQUEST)
-        shopping_cart.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
