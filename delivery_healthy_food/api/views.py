@@ -15,7 +15,7 @@ from .serializers import (
     CategorySerializer,
     ProductSerializer,
     FavoriteSerializer,
-    ShoppingCartGetSerializer,
+    ShoppingCartListSerializer,
     ShoppingCartPostUpdateSerializer,
     UserPostSerializer,
     UserGetSerializer
@@ -74,7 +74,7 @@ class ShoppingCartViewSet(ModelViewSet):
 
     def get_serializer_class(self):
         if self.action in ('list', 'retrieve'):
-            return ShoppingCartGetSerializer
+            return ShoppingCartListSerializer
         return ShoppingCartPostUpdateSerializer
 
     def create(self, request, *args, **kwargs):
@@ -93,9 +93,7 @@ class ShoppingCartViewSet(ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         """Метод редактирования количества продукта в корзине."""
-        print('>>>>>>>>>>>>>>>>>>>>>>>')
         partial = kwargs.pop('partial', False)
-
         product = get_object_or_404(Product, id=kwargs['id'])
         user = request.user
         serializer = ShoppingCartPostUpdateSerializer(
@@ -103,7 +101,6 @@ class ShoppingCartViewSet(ModelViewSet):
             context={"request": request.data}, partial=partial)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-
 
     def destroy(self, request, *args, **kwargs):
         """Метод для удаления продукта из корзины."""
