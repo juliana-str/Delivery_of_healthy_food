@@ -92,7 +92,7 @@ class FavoriteSerializer(serializers.ModelSerializer):
         return ProductMinifiedSerializer(instance, context=self.context).data
 
 
-class ShoppingCartGetSerializer(serializers.ModelSerializer):
+class ShoppingCartListSerializer(serializers.ModelSerializer):
     """Сериалайзер для представления продукта."""
     product_name = serializers.SerializerMethodField()
     product_weight = serializers.SerializerMethodField()
@@ -133,36 +133,6 @@ class ShoppingCartPostUpdateSerializer(serializers.ModelSerializer):
                 'Количество  товара в корзине должно быть не меньше 1!')
         return data
 
-    # def update(self, instance, validated_data):
-    #     count_of_product = validated_data.pop('count_of_product', 1)
-    #     ShoppingCart.objects.create(
-    #                 product=instance,
-    #                 user=self.context['request'].user,
-    #                 count_of_product=count_of_product
-    #         )
-    #     return super().update(instance, validated_data)
-
-    #
-    # def update(self, request, *args, **kwargs):
-    #     partial = kwargs.pop('partial', False)
-    #     instance = self.get_object()
-    #     serializer = self.get_serializer(
-    #         instance, data=request.data, partial=partial)
-    #     serializer.is_valid(raise_exception=True)
-    #     self.perform_update(serializer)
-    #
-    # def destroy(self, request, *args, **kwargs):
-    #     """Метод для удаления продукта из корзины."""
-    #     product = get_object_or_404(Product, id=kwargs['id'])
-    #     user = request.user
-    #     shopping_cart = ShoppingCart.objects.filter(
-    #         product=product.id, user=user.id)
-    #     if not shopping_cart:
-    #         return Response({'errors': 'Этого продукта нет в корзине!'},
-    #                         status=status.HTTP_400_BAD_REQUEST)
-    #     shopping_cart.delete()
-    #     return Response(status=status.HTTP_204_NO_CONTENT)
-
     # @transaction.atomic
     # def update(self, instance, validated_data):
     #     product = validated_data.get('product')
@@ -176,5 +146,3 @@ class ShoppingCartPostUpdateSerializer(serializers.ModelSerializer):
     #     if validated_data:
     #         shopping_cart.save()
     #         return shopping_cart
-
-

@@ -6,7 +6,7 @@ from .models import Favorite, ShoppingCart, Product, Category
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'measure_unit', 'description',
-                    'image', 'producer', 'category', 'weight')
+                    'image', 'producer', 'category', 'amount')
     list_filter = ('name', )
     search_fields = ('^name', )
 

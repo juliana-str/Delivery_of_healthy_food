@@ -12,6 +12,10 @@ class Category(models.Model):
         verbose_name='Категория товара',
         unique=True
     )
+    slug = models.SlugField(
+        max_length=50,
+        unique=True
+    )
 
     class Meta:
         ordering = ['name']
@@ -33,8 +37,8 @@ class Product(models.Model):
         max_length=200,
         verbose_name='Единица измерения'
     )
-    weight = models.FloatField(
-        verbose_name='Вес',
+    amount = models.FloatField(
+        verbose_name='Количество',
         validators=[
             MinValueValidator(1, 'Разрешены значения от 1 до 1000'),
             MaxValueValidator(1000, 'Разрешены значения от 1 до 1000')
@@ -73,6 +77,7 @@ class Product(models.Model):
 
     def __str__(self):
         return (f'{self.name}, ' 
+                f'{self.price} '
                 f'{self.measure_unit}, ' 
                 f'{self.description}, '
                 f'{self.category}, ' 
