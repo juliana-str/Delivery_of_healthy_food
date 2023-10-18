@@ -69,7 +69,7 @@ class Order(models.Model):
     status = models.CharField(
         max_length=50,
         choices=STATUS,
-        default=1
+        default='Оформлен'
         )
     payment_method = models.CharField(
         max_length=50,
@@ -86,9 +86,9 @@ class Order(models.Model):
         choices=DELIVERY_METHOD,
         default=2
     )
-    discount = models.IntegerField(
-        default=0
-    )
+    # discount = models.IntegerField(
+    #     default=0
+    # )
     total_price = models.IntegerField(
         default=0
     )

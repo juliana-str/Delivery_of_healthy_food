@@ -139,20 +139,6 @@ class ShoppingCartPostUpdateSerializer(serializers.ModelSerializer):
                 'Количество  товара в корзине должно быть не меньше 1!')
         return data
 
-    # @transaction.atomic
-    # def update(self, instance, validated_data):
-    #     product = validated_data.get('product')
-    #     user = validated_data.get('user')
-    #     count_of_product = validated_data.pop('count_of_product', 1)
-    #     shopping_cart = ShoppingCart.objects.get(
-    #         product=product,
-    #         user=user,
-    #         count_of_product=count_of_product
-    #     )
-    #     if validated_data:
-    #         shopping_cart.save()
-    #         return shopping_cart
-
 
 class OrderListSerializer(serializers.ModelSerializer):
     """Serializer for list orders."""
@@ -182,5 +168,7 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
             shopping_carts__user=self.context['request'].user)
 
     def get_total_price(self, obj):
+        total = obj.goods.price
         if obj.discount:
-            return (obj.total_price * obj.discount)/100
+            return (total * obj.discount)/100
+        return total

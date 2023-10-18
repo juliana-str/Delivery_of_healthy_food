@@ -14,7 +14,7 @@ class ShoppingCartAdmin(admin.ModelAdmin):
 class OrderAdmin(admin.ModelAdmin):
     list_display = ('id', 'goods',
                     'date', 'status', 'payment_method', 'is_paid',
-                    'delivery_method', 'comment', 'discount', 'total_price')
+                    'delivery_method', 'comment', 'total_price')
     list_editable = ('status', 'payment_method',
                      'is_paid', 'comment', 'delivery_method')
 
