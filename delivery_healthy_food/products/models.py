@@ -56,10 +56,9 @@ class Product(models.Model):
         max_length=100,
         verbose_name='Производитель',
     )
-    category = models.ManyToManyField(
+    category = models.ForeignKey(
         Category,
-        through='ProductCategory',
-        through_fields=('product', 'category'),
+        on_delete=models.CASCADE,
         verbose_name='Категория'
     )
     price = models.FloatField(

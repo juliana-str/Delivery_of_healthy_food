@@ -5,12 +5,14 @@ from users.models import User
 from products.models import Product
 
 
-STATUS = ['Оформлен', 'В обработке', 'Комплектуется', 'Собран',
-          'Передан в доставку', 'Доставлен', 'Завершен']
+STATUS = [(1, 'Оформлен'), (2, 'В обработке'), (3, 'Комплектуется'),
+          (4, 'Собран'),(5, 'Передан в доставку'),
+          (6, 'Доставлен'), (7, 'Завершен')]
 
-PAYMENT_METHODS = ['Наличные', 'Картой на сайте', 'При получении']
+PAYMENT_METHODS = [(1, 'Наличные'), (2, 'Картой на сайте'),
+                   (3,'При получении')]
 
-DELIVERY_METHOD = ['Пункт выдачи', 'Курьером']
+DELIVERY_METHOD = [(1, 'Пункт выдачи'), (2, 'Курьером')]
 
 
 class ShoppingCart(models.Model):
@@ -48,12 +50,12 @@ class ShoppingCart(models.Model):
 
 class Order(models.Model):
     """Model for creating an order."""
-    customer = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='orders',
-        verbose_name='Покупатель'
-    )
+    # customer = models.ForeignKey(
+    #     User,
+    #     on_delete=models.CASCADE,
+    #     related_name='orders',
+    #     verbose_name='Покупатель'
+    # )
     goods = models.ForeignKey(
         ShoppingCart,
         on_delete=models.CASCADE,
@@ -65,24 +67,33 @@ class Order(models.Model):
         auto_now_add=True
     )
     status = models.CharField(
+        max_length=50,
         choices=STATUS,
-        default='Оформлен'
+        default=1
         )
     payment_method = models.CharField(
+        max_length=50,
         choices=PAYMENT_METHODS,
-        default='Картой на сайте'
+        default=2
     )
     is_paid = models.BooleanField(default=False)
     comment = models.TextField(
         max_length=400,
-        null=True
+        blank=True
     )
     delivery_method = models.CharField(
+        max_length=50,
         choices=DELIVERY_METHOD,
-        default='Курьером'
+        default=2
+    )
+    discount = models.IntegerField(
+        default=0
+    )
+    total_price = models.IntegerField(
+        default=0
     )
 
     class Meta:
-        ordering = ['-pub_date']
+        ordering = ['-date']
         verbose_name = 'Заказ'
         verbose_name_plural = 'Заказы'
