@@ -9,8 +9,9 @@ from djoser.serializers import SetPasswordSerializer
 from djoser.views import UserViewSet
 
 from users.models import User
+from orders.models import ShoppingCart, Order
 from products.models import (
-    Product, ShoppingCart, Favorite, Category)
+    Product, Favorite, Category)
 from .serializers import (
     CategorySerializer,
     ProductSerializer,
@@ -18,7 +19,9 @@ from .serializers import (
     ShoppingCartListSerializer,
     ShoppingCartPostUpdateSerializer,
     UserPostSerializer,
-    UserGetSerializer
+    UserGetSerializer,
+    OrderPostDeleteSerializer,
+    OrderListSerializer
 )
 
 
@@ -63,7 +66,7 @@ class ProductViewSet(mixins.ListModelMixin,
     permission_classes = (AllowAny,)
     filter_backends = (DjangoFilterBackend,)
     search_fields = ('name',)
-    lookup_fields = ('name',)
+    lookup_fields = ('^name',)
 
 
 class ShoppingCartViewSet(ModelViewSet):
@@ -113,6 +116,27 @@ class ShoppingCartViewSet(ModelViewSet):
                             status=status.HTTP_400_BAD_REQUEST)
         shopping_cart.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=True, methods=['post', 'get'],
+            permission_classes=[IsAuthenticated])
+    def order(self,request, **kwargs):
+        customer = request.user
+        goods = ShoppingCart.objects.filter(
+            shopping_carts__user=customer)
+        print(customer, goods)
+        if request.method == 'POST':
+            serializer = OrderPostDeleteSerializer(
+                data={'goods': goods.id},
+                context={"request": request})
+            serializer.is_valid(raise_exception=True)
+            Order.objects.create(customer=customer, goods=goods)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        orders = Order.objects.filter(customer=customer.id)
+        if not orders:
+            return Response({'errors': 'У этого покупателя еще нет заказов!'},
+                            status=status.HTTP_400_BAD_REQUEST)
+        return orders
 
 
 class FavoriteViewSet(mixins.ListModelMixin,

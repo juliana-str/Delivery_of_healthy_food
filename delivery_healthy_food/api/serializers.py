@@ -2,10 +2,10 @@ from django.db import transaction
 from djoser.serializers import UserCreateSerializer
 from rest_framework import serializers
 
-from products.models import Product, ShoppingCart, Favorite, Category
+from products.models import Product, Favorite, Category
 from users.models import User
 
-from delivery_healthy_food.orders.models import Order
+from orders.models import Order, ShoppingCart
 
 
 class UserGetSerializer(UserCreateSerializer):
@@ -17,6 +17,8 @@ class UserGetSerializer(UserCreateSerializer):
                   'username',
                   'first_name',
                   'last_name',
+                  'phone_number',
+                  'address'
                   )
         model = User
 
@@ -31,7 +33,9 @@ class UserPostSerializer(UserCreateSerializer):
             'username',
             'first_name',
             'last_name',
-            'password'
+            'password',
+            'phone_number',
+            'address'
         )
         model = User
 
@@ -102,14 +106,14 @@ class ShoppingCartListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ShoppingCart
-        fields = ('product_name', 'count_of_product',
+        fields = ('product_name',
                   'product_amount', 'product_price')
 
     def get_product_name(self, obj):
         return obj.product.name
 
     def get_product_amont(self, obj):
-        return obj.product.weight
+        return obj.product.amount
 
     def get_product_price(self, obj):
         return obj.product.price
@@ -150,24 +154,33 @@ class ShoppingCartPostUpdateSerializer(serializers.ModelSerializer):
     #         return shopping_cart
 
 
-class OrderSerializer(serializers.ModelSerializer):
-    """Serializer for create/update/delete orders."""
-    customer_data = serializers.SerializerMethodField()
-    shopping_cart_products = serializers.SerializerMethodField()
+class OrderListSerializer(serializers.ModelSerializer):
+    """Serializer for list orders."""
 
     class Meta:
         model = Order
-        fields = ('customer_data', 'shopping_cart_products',
+        fields = ('goods', 'date', 'status', 'is_paid','total_price')
+
+
+class OrderPostDeleteSerializer(serializers.ModelSerializer):
+    """Serializer for create/delete orders."""
+    customer = UserGetSerializer()
+    goods = ShoppingCartListSerializer()
+    discount = serializers.SerializerMethodField()
+    total_price = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Order
+        fields = ('customer_name', 'customer_surname', 'customer_phone_number',
+                  'customer_address', 'goods',
                   'date', 'status', 'payment_method', 'is_paid',
-                  'delivery_method', 'comment')
+                  'delivery_method', 'comment', 'discount', 'total_price')
 
-    def get_customer_data(self, obj):
-        name = obj.user.name
-        surname = obj.user.surname
-        address = obj.user.address
-        phone_number = obj.user.phone_number
-        return name, surname, address, phone_number
-
-    def get_shopping_cart_products(self, obj):
+    def get_goods(self, obj):
+        print(obj)
         return ShoppingCart.filter(
             shopping_carts__user=self.context['request'].user)
+
+    def get_total_price(self, obj):
+        if obj.discount:
+            return (obj.total_price * obj.discount)/100
