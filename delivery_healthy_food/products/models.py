@@ -110,39 +110,6 @@ class Favorite(models.Model):
         ]
 
 
-class ShoppingCart(models.Model):
-    """Модель для создания корзины покупок."""
-    user = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='shopping_carts',
-        verbose_name='Добавил в корзину'
-    )
-    product = models.ForeignKey(
-        Product,
-        on_delete=models.CASCADE,
-        related_name='shopping_carts',
-        verbose_name='Продукт в корзине'
-    )
-    count_of_product = models.IntegerField(
-        verbose_name='Количество товара',
-        validators=[
-                MinValueValidator(1, 'Разрешены значения от 1 до 100'),
-                MaxValueValidator(10000, 'Разрешены значения от 1 до 100')
-        ]
-    )
-
-    class Meta:
-        verbose_name = 'Корзина'
-        verbose_name_plural = 'Корзина'
-        constraints = [
-            models.UniqueConstraint(
-                fields=['user', 'product'],
-                name='unique_shopping_cart'
-            )
-        ]
-
-
 class ProductCategory(models.Model):
     """Модель связи моделей категорий и продуктов."""
     category = models.ForeignKey(

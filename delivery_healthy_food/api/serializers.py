@@ -5,6 +5,8 @@ from rest_framework import serializers
 from products.models import Product, ShoppingCart, Favorite, Category
 from users.models import User
 
+from delivery_healthy_food.orders.models import Order
+
 
 class UserGetSerializer(UserCreateSerializer):
     """Сериалайзер для модели пользователей, просмотр."""
@@ -95,18 +97,18 @@ class FavoriteSerializer(serializers.ModelSerializer):
 class ShoppingCartListSerializer(serializers.ModelSerializer):
     """Сериалайзер для представления продукта."""
     product_name = serializers.SerializerMethodField()
-    product_weight = serializers.SerializerMethodField()
+    product_amount = serializers.SerializerMethodField()
     product_price = serializers.SerializerMethodField()
 
     class Meta:
         model = ShoppingCart
         fields = ('product_name', 'count_of_product',
-                  'product_weight', 'product_price')
+                  'product_amount', 'product_price')
 
     def get_product_name(self, obj):
         return obj.product.name
 
-    def get_product_weight(self, obj):
+    def get_product_amont(self, obj):
         return obj.product.weight
 
     def get_product_price(self, obj):
@@ -146,3 +148,24 @@ class ShoppingCartPostUpdateSerializer(serializers.ModelSerializer):
     #     if validated_data:
     #         shopping_cart.save()
     #         return shopping_cart
+
+class OrderSerializer(serializers.ModelSerializer):
+    """Serializer for create/update/delete orders."""
+    customer_data = serializers.SerializerMethodField()
+    shopping_cart_products = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Order
+        fields = ('customer_data', 'shopping_cart_products',
+                  'date', 'status', 'is_paid')
+
+    def get_customer_data(self, obj):
+        name = obj.user.name
+        surname = obj.user.surname
+        address = obj.user.address
+        phone_number = obj.user.phone_number
+        return name, surname, address, phone_number
+
+    def get_shopping_cart_products(self, obj):
+        return ShoppingCart.filter(
+            shopping_carts__user=self.context['request'].user)
