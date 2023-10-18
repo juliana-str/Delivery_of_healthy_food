@@ -5,8 +5,8 @@ from users.models import User
 from products.models import Product
 
 
-STATUS = ['В обработке', 'Комплектуется' 'Собран',
-          'Передан в доставку', 'Доставлен', 'завершен']
+STATUS = ['Оформлен', 'В обработке', 'Комплектуется', 'Собран',
+          'Передан в доставку', 'Доставлен', 'Завершен']
 
 PAYMENT_METHODS = ['Наличные', 'Картой на сайте', 'При получении']
 
@@ -45,6 +45,7 @@ class ShoppingCart(models.Model):
             )
         ]
 
+
 class Order(models.Model):
     """Model for creating an order."""
     customer = models.ForeignKey(
@@ -63,14 +64,23 @@ class Order(models.Model):
         verbose_name='Дата оформления',
         auto_now_add=True
     )
-    status = models.TextChoices(STATUS)
-    payment_method = models.TextChoices(PAYMENT_METHODS)
+    status = models.CharField(
+        choices=STATUS,
+        default='Оформлен'
+        )
+    payment_method = models.CharField(
+        choices=PAYMENT_METHODS,
+        default='Картой на сайте'
+    )
     is_paid = models.BooleanField(default=False)
     comment = models.TextField(
         max_length=400,
         null=True
     )
-    delivery_method = models.TextChoices(DELIVERY_METHOD)
+    delivery_method = models.CharField(
+        choices=DELIVERY_METHOD,
+        default='Курьером'
+    )
 
     class Meta:
         ordering = ['-pub_date']

@@ -149,6 +149,7 @@ class ShoppingCartPostUpdateSerializer(serializers.ModelSerializer):
     #         shopping_cart.save()
     #         return shopping_cart
 
+
 class OrderSerializer(serializers.ModelSerializer):
     """Serializer for create/update/delete orders."""
     customer_data = serializers.SerializerMethodField()
@@ -157,7 +158,8 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ('customer_data', 'shopping_cart_products',
-                  'date', 'status', 'is_paid')
+                  'date', 'status', 'payment_method', 'is_paid',
+                  'delivery_method', 'comment')
 
     def get_customer_data(self, obj):
         name = obj.user.name

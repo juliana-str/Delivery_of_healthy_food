@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Favorite, ShoppingCart, Product, Category
+from .models import Favorite, Product, Category
 
 
 @admin.register(Product)
@@ -18,12 +18,6 @@ class ProductAdmin(admin.ModelAdmin):
 class FavoriteAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'product')
     list_editable = ('user', 'product')
-
-
-@admin.register(ShoppingCart)
-class ShoppingCartAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'product', 'count_of_product')
-    list_editable = ('user', 'product', 'count_of_product')
 
 
 admin.site.register(Category)

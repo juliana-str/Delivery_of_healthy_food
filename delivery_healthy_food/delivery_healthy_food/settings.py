@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'api',
     'users',
     'products',
+    'orders',
     'rest_framework_swagger',  # Swagger
     'drf_yasg'
 ]
