@@ -6,7 +6,6 @@ from .views import (
     CategoryViewSet,
     ProductViewSet,
     FavoriteViewSet,
-    ShoppingCartViewSet
 )
 
 app_name = 'api'
@@ -16,8 +15,6 @@ router.register(r'users', CustomUserViewSet, basename='users')
 router.register(r'products', ProductViewSet, basename='products')
 router.register(r'favorites', FavoriteViewSet, basename='favorites')
 router.register(r'categories', CategoryViewSet, basename='categories')
-router.register(
-    r'shopping_cart', ShoppingCartViewSet, basename='shopping_carts')
 
 
 urlpatterns = [

@@ -112,7 +112,7 @@ class ShoppingCartListSerializer(serializers.ModelSerializer):
     def get_product_name(self, obj):
         return obj.product.name
 
-    def get_product_amont(self, obj):
+    def get_product_amount(self, obj):
         return obj.product.amount
 
     def get_product_price(self, obj):
@@ -142,25 +142,28 @@ class ShoppingCartPostUpdateSerializer(serializers.ModelSerializer):
 
 class OrderListSerializer(serializers.ModelSerializer):
     """Serializer for list orders."""
-
-    class Meta:
-        model = Order
-        fields = ('goods', 'date', 'status', 'is_paid','total_price')
-
-
-class OrderPostDeleteSerializer(serializers.ModelSerializer):
-    """Serializer for create/delete orders."""
-    customer = UserGetSerializer()
-    goods = ShoppingCartListSerializer()
-    discount = serializers.SerializerMethodField()
     total_price = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
-        fields = ('customer_name', 'customer_surname', 'customer_phone_number',
-                  'customer_address', 'goods',
+        fields = ('user', 'goods', 'date', 'status',
+                  'is_paid','total_price')
+
+    def get_total_price(self,obj):
+        return sum(obj.goods.price)
+
+
+class OrderPostDeleteSerializer(serializers.ModelSerializer):
+    """Serializer for create/delete orders."""
+
+    goods = ShoppingCartListSerializer()
+    total_price = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Order
+        fields = ('user', 'goods',
                   'date', 'status', 'payment_method', 'is_paid',
-                  'delivery_method', 'comment', 'discount', 'total_price')
+                  'delivery_method', 'comment', 'total_price')
 
     def get_goods(self, obj):
         print(obj)
@@ -172,3 +175,38 @@ class OrderPostDeleteSerializer(serializers.ModelSerializer):
         if obj.discount:
             return (total * obj.discount)/100
         return total
+
+    # @transaction.atomic
+    # def create(self, validated_data):
+    #     user = self.context['request'].user
+    #     payment_method = validated_data.pop('payment_method')
+    #     status = validated_data.pop('status')
+    #     is_paid = validated_data.pop('is_paid ')
+    #     comment = validated_data.pop('comment')
+    #     total_price = validated_data.pop('total_price')
+    #     delivery_method = validated_data.pop('delivery_method')
+    #     goods = validated_data.pop('good')
+    #     order = Order.objects.create(
+    #         user=user,
+    #         goods=goods,
+    #         payment_method=payment_method,
+    #         status=status,
+    #         is_paid=is_paid,
+    #         comment=comment,
+    #         delivery_method=delivery_method,
+    #         total_price=total_price
+    #     )
+    #     return order
+
+    # @transaction.atomic
+    # def update(self, instance, validated_data):
+    #     ingredient = validated_data.get('ingredient')
+    #     amount = validated_data.get('amount')
+    #     recipe = validated_data.get('recipe')
+    #     ingredient_in_recipe = IngredientInRecipe.objects.get(
+    #         ingredient=ingredient,
+    #         amount=amount,
+    #         recipe=recipe
+    #     )
+    #     if validated_data:
+    #         ingredient_in_recipe.save()
